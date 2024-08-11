@@ -1,23 +1,11 @@
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
-from rest_framework import serializers
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework import status
 from rest_framework.authtoken.models import Token
-
-
-class LoginSerializer(serializers.Serializer):
-    username = serializers.CharField()
-    password = serializers.CharField()
-
-
-class TokenSerializer(serializers.ModelSerializer):
-    token = serializers.CharField(source='key')
-
-    class Meta:
-        model = Token
-        fields = ['token']
+from rest_framework.permissions import IsAuthenticated
+from .serializers import LoginSerializer, TokenSerializer, UserSerializer
 
 
 class TokenView(APIView):
@@ -33,6 +21,17 @@ class TokenView(APIView):
         if user and user.check_password(username_password['password']):
             Token.objects.filter(user=user).delete()
             token = Token.objects.create(user=user)
-            return Response(TokenSerializer(token).data, status=status.HTTP_200_OK)
+            return Response(
+                TokenSerializer(token).data, status=status.HTTP_200_OK
+            )
 
         return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+
+class UserView(APIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserSerializer
+
+    def get(self, request: Request) -> Response:
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
