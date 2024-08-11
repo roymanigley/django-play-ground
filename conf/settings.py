@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
+import tempfile
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -20,13 +21,21 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-i7zt(5_(_z1#3&^n(40!vud5b4d81(x$7jh2uzrvz=hebxp^=y'
+SECRET_KEY = os.getenv(
+    'DJANGO_SECRET_KEY',
+    'django-insecure-i7zt(5_(_z1#3&^n(40!vud5b4d81(x$7jh2uzrvz=hebxp^=y'
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DJANGO_DEBUG', 'false').lower() == 'true'
+DEBUG = os.getenv('DJANGO_DEBUG', 'true').lower() == 'true'
+ALLOWED_HOSTS = os.getenv(
+    'DJANGO_ALLOWED_HOSTS', '127.0.0.1 localhost'
+).split(' ')
 
-ALLOWED_HOSTS = []
-
+CSRF_TRUSTED_ORIGINS = os.getenv(
+    'DJANGO_CSRF_TRUSTED_ORIGINS',
+    'http://127.0.0.1:8000 http://localhost:8000'
+).split(' ')
 # Application definition
 
 INSTALLED_APPS = [
@@ -145,7 +154,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
-
+STATIC_ROOT = os.getenv(
+    'DJANGO_STATIC_ROOT', os.path.join(tempfile.mkdtemp('static'), 'static')
+)
+MEDIA_URL = 'media/'
+MEDIA_ROOT = os.getenv(
+    'DJANGO_MEDIA_ROOT', os.path.join(tempfile.mkdtemp('media'), 'media')
+)
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
